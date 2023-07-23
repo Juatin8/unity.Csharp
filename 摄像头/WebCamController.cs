@@ -4,7 +4,7 @@ using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class CameraController : MonoBehaviour
+public class WebCamController : MonoBehaviour
 {
     private int currentCamIndex = 0;
     private WebCamTexture webCamTexture;
@@ -88,12 +88,12 @@ public class CameraController : MonoBehaviour
 
     public void CaptureScreenshot()
     {
-        // ½ØÍ¼
+        // Â½Ã˜ÃÂ¼
         Texture2D screenshot = new Texture2D(Screen.width, Screen.height, TextureFormat.RGB24, false);
         screenshot.ReadPixels(new Rect(0, 0, Screen.width, Screen.height), 0, 0);
         screenshot.Apply();
 
-        // ±£´æµ½±¾µØ
+        // Â±Â£Â´Ã¦ÂµÂ½Â±Â¾ÂµÃ˜
         byte[] bytes = screenshot.EncodeToPNG();
         string filename = "screenshot_" + System.DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".png";
         string filepath = Application.persistentDataPath + "/" + filename;
