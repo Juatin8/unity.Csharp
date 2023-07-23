@@ -1,2 +1,3 @@
 # webcam
+该脚本可实现对摄像头的开启关闭，以及保存截图
 在Unity scene中创建rawimage作为相机呈现画面的画布，并把这个rawimage挂成脚本参数
