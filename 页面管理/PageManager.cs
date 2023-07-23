@@ -1,51 +1,26 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class PageManager : MonoBehaviour
 {
     public GameObject[] gbs;
+    private int currentPage = 0;
     void Start()
     {
+        ShowPage(currentPage);
+    }
+    public void ShowPage(int index)
+    {
+        // 隐藏所有页面
         foreach(GameObject gb in gbs)
         {
             gb.SetActive(false);
         }
-        gbs[0].SetActive(true);
-    }
 
-   public void page1()
-    {
-        foreach(GameObject gb in gbs)
+        // 显示指定索引的页面
+        if(index >= 0 && index < gbs.Length)
         {
-            gb.SetActive(false);
+            gbs[index].SetActive(true);
+            currentPage = index;
         }
-        gbs[1].SetActive(true);
-    }
-
-    public void page2()
-    {
-        foreach(GameObject gb in gbs)
-        {
-            gb.SetActive(false);
-        }
-        gbs[2].SetActive(true);
-    }
-    public void page3()
-    {
-        foreach(GameObject gb in gbs)
-        {
-            gb.SetActive(false);
-        }
-        gbs[3].SetActive(true);
-    }
-
-    public void page4()
-    {
-        foreach(GameObject gb in gbs)
-        {
-            gb.SetActive(false);
-        }
-        gbs[4].SetActive(true);
     }
 }
