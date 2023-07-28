@@ -1,4 +1,4 @@
-void HandVibrate(float intensity, int duration, int hand)     //简化封装手柄震动的函数
+public void HandVibrate(float intensity, int duration, int hand)     //简化封装手柄震动的函数
     {
         if(hand == 0)
         {
