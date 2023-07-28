@@ -14,7 +14,7 @@ public class SpeakerAudio : MonoBehaviour
     ar = new List<float>();             //数组初始化
         
     //----------------------------合成加工 a+b+c 的逻辑 ------------------------------------------------
-    private void CombineClips()    //加载音频资源
+    public void CombineClips()    //加载音频资源
     {
         audioclips[0] = (AudioClip)Resources.Load("hello");
         audioclips[1] = (AudioClip)Resources.Load("animals/" + ang.CallAnimalName);
