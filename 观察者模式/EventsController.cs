@@ -3,90 +3,19 @@ using UnityEngine.Events;
 
 public class EventsController : MonoBehaviour
 {
-    //----------------------µ¥ÀıĞ´·¨----------------------------
+    //----------------------å•ä¾‹å†™æ³•----------------------------
     public static EventsController Instance = null;
     private void Awake()
     {
         Instance = this;
     }
-    //------------------------------------------------------
+    //-----------------------------------------------------
 
-    private Animal am;
-    private TouchEvent te;
-    private TeacherAudio ta;
-    private SpeakerAudio sa;
-    private Button3D bn;
-    private Hand[] hs;
-    private TimeManager sm;
-
-    // ÊÂ¼şÍ³Ò»¼¯ÖĞ¹ÜÀí
+    // äº‹ä»¶ç»Ÿä¸€é›†ä¸­ç®¡ç†
     [HideInInspector]
-    public UnityEvent CollideEvent, ChooseRightEvent, ChooseWrongEvent;         //Ìí¼ÓÒ»¸öÊÖ²¿Åö×²ÊÂ¼ş, Ñ¡¶ÔÁËÊÂ¼ş, Ñ¡´íÁËÊÂ¼ş
-    public UnityEvent HoldphoneEvent, StillPhoneEvent;   //¸ãÒ»¸öÄÃÆğµç»°»úµÄÊÂ¼ş & µç»°»úÔ­Î»¾²Ö¹µÄÊÂ¼ş
-    public UnityEvent DestroyAnimalsEvent;  //¸ãÒ»¸öÏú»Ù¶¯ÎïµÄÊÂ¼ş
-    public UnityEvent LevelOverEvent;    //¹ı¹ØÂß¼­
+    public UnityEvent CollideEvent, ChooseRightEvent, ChooseWrongEvent;         //æ·»åŠ ä¸€ä¸ªæ‰‹éƒ¨ç¢°æ’äº‹ä»¶, é€‰å¯¹äº†äº‹ä»¶, é€‰é”™äº†äº‹ä»¶
+    public UnityEvent HoldphoneEvent, StillPhoneEvent;   //æä¸€ä¸ªæ‹¿èµ·ç”µè¯æœºçš„äº‹ä»¶ & ç”µè¯æœºåŸä½é™æ­¢çš„äº‹ä»¶
+    public UnityEvent DestroyAnimalsEvent;  //æä¸€ä¸ªé”€æ¯åŠ¨ç‰©çš„äº‹ä»¶
+    public UnityEvent LevelOverEvent;    //è¿‡å…³é€»è¾‘
     public UnityEvent ButtonDownEvent;
-
-    private void Start()
-    {
-        am = GameObject.Find("Animals").GetComponent<Animal>();
-        te = GameObject.Find("RHand").GetComponent<TouchEvent>();      //ÕÒ½Å±¾
-        ta = GameObject.Find("Teacher").GetComponent<TeacherAudio>();
-        sa = GameObject.Find("Speaker").GetComponent<SpeakerAudio>();
-        bn = GameObject.Find("ReplayBtn").GetComponent<Button3D>();
-        hs[0] = GameObject.Find("LHand").GetComponent<Hand>();
-        hs[1] = GameObject.Find("RHand").GetComponent<Hand>();
-
-        HoldphoneEvent.AddListener(sa.PhoneSpeak);     //ÄÃÆğµç»°»ú------·¢ÉùÒô
-        StillPhoneEvent.AddListener(sa.StopAudio);     //µç»°»úÔ­Î»------Í£Ö¹²¥·Å
-        ChooseRightEvent.AddListener(sa.AllowPlay);          //Ñ¡¶Ô-----ÔÊĞíÖØ²¥
-        ChooseRightEvent.AddListener(sa.PhoneRingLater);    //Ñ¡¶Ô-----ÔÊĞí¹ı¶ÎÊ±¼äµç»°ÁåÉùÏìÆğ
-        ButtonDownEvent.AddListener(sa.AllowPlayAndNoGenerateName);     //°´ÏÂÖØÌı°´Å¥---ÔÊĞíÖØ²¥ÇÒÈ¡ÏûĞÂÓïÒôºÏ³É
-        HoldphoneEvent.AddListener(hs[0].phoneVibarate);    //µç»°Õğ¶¯
-        HoldphoneEvent.AddListener(hs[1].phoneVibarate);    //µç»°Õğ¶¯
-        CollideEvent.AddListener(hs[0].touchVibrate); // Õğ¶¯
-        HoldphoneEvent.AddListener(hs[1].touchVibrate);    //µç»°Õğ¶¯
-
-        HoldphoneEvent.AddListener(Animal.Generate2Names);  //ÄÃÆğµç»°»ú-----Ëæ»úÉú³ÉÃû×Ö
-        HoldphoneEvent.AddListener(am.spawnAnimalsLater);     //ÄÃÆğµç»°»ú------ÉÔÍíĞ©Éú³É¶¯Îï
-        ChooseRightEvent.AddListener(am.AllowSpawnLater);     //Ñ¡¶Ô-----------ÉÔÎ¢ÍíÒ»Ğ©¾ÍÔÊĞíÔÙ´ÎÉú³É¶¯Îï 
-        ChooseRightEvent.AddListener(am.destroyAnimals);      //Ñ¡¶Ô-----------5sºóÏú»Ù¶¯Îï
-
-        //  sm = GameObject.Find("ScoreUICanvas").GetComponent<TimeManager>();
-
-
-        //ÄÃÆğµç»°»ú
-        // HoldphoneEvent.AddListener(sm.TimeStart);         //ÄÃÆğµç»°»ú-----¿ªÊ¼¼ÆÊ±
-        //HoldphoneEvent.AddListener(hs[0].phoneVibarate);    //µç»°Õğ¶¯
-        //HoldphoneEvent.AddListener(hs[1].phoneVibarate);    //µç»°Õğ¶¯
-        // HoldphoneEvent.AddListener(Animal.Generate2Names);  //ÄÃÆğµç»°»ú-----Ëæ»úÉú³ÉÃû×Ö
-        // HoldphoneEvent.AddListener(sa.PhoneSpeak);     //ÄÃÆğµç»°»ú------·¢ÉùÒô
-        // HoldphoneEvent.AddListener(am.spawnAnimalsLater);     //ÄÃÆğµç»°»ú------ÉÔÍíĞ©Éú³É¶¯Îï
-
-        // µç»°»úÔ­Î»
-        //StillPhoneEvent.AddListener(sa.StopAudio);     //µç»°»úÔ­Î»------Í£Ö¹²¥·Å
-
-        // Ñ¡¶ÔÁË
-        //ChooseRightEvent.AddListener(sa.AllowPlay);          //Ñ¡¶Ô-----ÔÊĞíÖØ²¥
-        //ChooseRightEvent.AddListener(sa.PhoneRingLater);    //Ñ¡¶Ô-----ÔÊĞí¹ı¶ÎÊ±¼äµç»°ÁåÉùÏìÆğ
-        // ChooseRightEvent.AddListener(am.AllowSpawnLater);     //Ñ¡¶Ô-----------ÉÔÎ¢ÍíÒ»Ğ©¾ÍÔÊĞíÔÙ´ÎÉú³É¶¯Îï 
-        ChooseRightEvent.AddListener(DataManager.TopicOver);         //Ñ¡¶ÔÊÂ¼ş-------»°Ìâ½áÊø
-                                                                     // ChooseRightEvent.AddListener(ta.SayRight);         //Ñ¡¶Ô-----------ÀÏÊ¦Ëµ¶Ô
-                                                                     // ChooseRightEvent.AddListener(sm.TimeEnd); //Ñ¡¶ÔÁË---------½áÊø¼ÆÊ±
-                                                                     // ChooseRightEvent.AddListener(am.destroyAnimals);      //Ñ¡¶Ô-----------5sºóÏú»Ù¶¯Îï
-
-        // Ñ¡´íÁË
-        //ChooseWrongEvent.AddListener(ta.SayWrong);        //Ñ¡´í-----------ÀÏÊ¦Ëµ´í
-        // °´ÏÂ°´Å¥
-        // bn.ButtonDownEvent.AddListener(sa.AllowPlayAndNoGenerateName);     //°´ÏÂÖØÌı°´Å¥---ÔÊĞíÖØ²¥ÇÒÈ¡ÏûĞÂÓïÒôºÏ³É
-        // ÊÖ²¿Åö×²ÊÂ¼ş
-        //CollideEvent.AddListener(hs[0].touchVibrate); // Õğ¶¯
-        //CollideEvent.AddListener(hs[1].touchVibrate); // Õğ¶¯
-
-    }
-    private void Update()
-    {
-
-    }
-
 }
