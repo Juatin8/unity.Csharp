@@ -9,3 +9,6 @@
 - 整个框架为：
   发生逻辑(invoke)----eventscontroller---Observer(addlistener)
   相当于一个中间的过渡容器，很好的隔开两者
+
+  #### 注意
+  - 测试发现这个脚本不能做静态，会出问题。但是单例模式可行。
