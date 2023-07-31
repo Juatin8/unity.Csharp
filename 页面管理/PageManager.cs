@@ -4,19 +4,19 @@ public class PageManager : MonoBehaviour
 {
     public GameObject[] gbs;
     private int currentPage = 0;
-    void Start()
+    void Awake() //å¿…é¡»æ˜¯awake, startçš„è¯ä¼šå¯¼è‡´é¢æ¿ä¸­çš„ä¸€äº›è„šæœ¬çš„startæŠ¢è·‘
     {
         ShowPage(currentPage);
     }
     public void ShowPage(int index)
     {
-        // Òş²ØËùÓĞÒ³Ãæ
+        // éšè—æ‰€æœ‰é¡µé¢
         foreach(GameObject gb in gbs)
         {
             gb.SetActive(false);
         }
 
-        // ÏÔÊ¾Ö¸¶¨Ë÷ÒıµÄÒ³Ãæ
+        // æ˜¾ç¤ºæŒ‡å®šç´¢å¼•çš„é¡µé¢
         if(index >= 0 && index < gbs.Length)
         {
             gbs[index].SetActive(true);
