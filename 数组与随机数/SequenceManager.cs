@@ -39,26 +39,23 @@ public static class SequenceManager
     // ---------------随机打乱数组-------------------Fisher-Yates随机算法
     public static void ShuffleArray<T>(T[] array)   // Array
     {
-        Random rand = new Random();
         for (int i = array.Length - 1; i > 0; i--)
         {
-            int j = rand.Next(i + 1);
+            int j = Random.Range(0, i + 1);
             T temp = array[i];
             array[i] = array[j];
             array[j] = temp;
         }
     }
 
- public static void Shuffle<T>(List<T> list)    // List
+ public static void ShuffleList<T>(List<T> list)    // List
     {
-        int n = list.Count;
-        while (n > 1)
+        for(int i= list.Count - 1; i > 0; i--)
         {
-            n--;
-            int k = Random.Range(0, n + 1);
-            T temp = list[k];
-            list[k] = list[n];
-            list[n] = temp;
+            int j = Random.Range(0, i + 1);
+            T temp = list[i];
+            list[i] = list[j];
+            list[j] = temp;
         }
     }
 
