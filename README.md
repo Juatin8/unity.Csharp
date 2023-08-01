@@ -1,2 +1,2 @@
 # unity.Csharp
-Some C# code templates that make Game develop faster
+There are some C# code templates that faster your game or software engineering.
