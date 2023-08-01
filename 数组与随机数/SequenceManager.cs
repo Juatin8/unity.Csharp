@@ -2,14 +2,14 @@ using System.Collections.Generic;
 using UnityEngine;
 public static class SequenceManager
 {
-    public static int[] GetRandomSequence(int Ocount, int RandomCount)   //Éú³É²»Ëæ»úµÄ¼¸¸öÊı×Ö,Êä³öÊı×é
+    public static int[] GetRandomSequence(int Ocount, int RandomCount)   //ç”Ÿæˆä¸éšæœºçš„å‡ ä¸ªæ•°å­—,è¾“å‡ºæ•°ç»„
     {
         int[] newNumbers = new int[RandomCount];
         int temp;
         for(int i = 0; i < RandomCount; i++)
         {
-            temp = Random.Range(0, Ocount);                     //tempÊÇĞòÁĞÖĞ²úÉúµÄÒ»¸öËæ»úÖµ
-            while(System.Array.IndexOf(newNumbers, temp) > -1)     //ÅĞ¶Ï¼¯ºÏÖĞÓĞÎŞÉú³ÉµÄËæ»úÊı£¬ÈôÓĞÔòÖØĞÂÉú³ÉËæ»úÊı£¬Ö±µ½Éú³ÉµÄËæ»úÊılist¼¯ºÏÖĞÃ»ÓĞ²ÅÍË³öÑ­»·
+            temp = Random.Range(0, Ocount);                     //tempæ˜¯åºåˆ—ä¸­äº§ç”Ÿçš„ä¸€ä¸ªéšæœºå€¼
+            while(System.Array.IndexOf(newNumbers, temp) > -1)     //åˆ¤æ–­é›†åˆä¸­æœ‰æ— ç”Ÿæˆçš„éšæœºæ•°ï¼Œè‹¥æœ‰åˆ™é‡æ–°ç”Ÿæˆéšæœºæ•°ï¼Œç›´åˆ°ç”Ÿæˆçš„éšæœºæ•°listé›†åˆä¸­æ²¡æœ‰æ‰é€€å‡ºå¾ªç¯
             {
                 temp = Random.Range(0, Ocount);
             }
@@ -18,7 +18,7 @@ public static class SequenceManager
         return newNumbers;
     }
 
-    public static int[] GetRandomWithOneFixed(int Ocount, int fixedNumber, int totalRdNum)   //Ocount ±¾À´µÄÊıÁĞµÄÊıÁ¿£¬fixednumberÒÑÖªµÄÊı£¬totalRdNum×Ü¹²¶àÉÙ²»ÖØ¸´Êı
+    public static int[] GetRandomWithOneFixed(int Ocount, int fixedNumber, int totalRdNum)   //Ocount æœ¬æ¥çš„æ•°åˆ—çš„æ•°é‡ï¼Œfixednumberå·²çŸ¥çš„æ•°ï¼ŒtotalRdNumæ€»å…±å¤šå°‘ä¸é‡å¤æ•°
     {
         List<int> generatedNumbers = new List<int>();
         generatedNumbers.Add(fixedNumber);
@@ -36,7 +36,33 @@ public static class SequenceManager
         return generatedNums;
     }
 
-    // ------------- ´ÓÊı×éÖĞËæ»úÎ»ÖÃÈ¡³öÒ»¸öÔªËØ----------------------
+    // ---------------éšæœºæ‰“ä¹±æ•°ç»„-------------------Fisher-Yateséšæœºç®—æ³•
+    public static void ShuffleArray<T>(T[] array)   // Array
+    {
+        Random rand = new Random();
+        for (int i = array.Length - 1; i > 0; i--)
+        {
+            int j = rand.Next(i + 1);
+            T temp = array[i];
+            array[i] = array[j];
+            array[j] = temp;
+        }
+    }
+
+ public static void Shuffle<T>(List<T> list)    // List
+    {
+        int n = list.Count;
+        while (n > 1)
+        {
+            n--;
+            int k = Random.Range(0, n + 1);
+            T temp = list[k];
+            list[k] = list[n];
+            list[n] = temp;
+        }
+    }
+
+    // ------------- ä»æ•°ç»„ä¸­éšæœºä½ç½®å–å‡ºä¸€ä¸ªå…ƒç´ ----------------------
     public static T GetRandomItem<T>(List<T> list)
     {
         int index = Random.Range(0, list.Count);
