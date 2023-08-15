@@ -1,4 +1,3 @@
-
 using Unity.XR.PXR;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -12,7 +11,7 @@ public static class PICOManager
 
     static bool isHeadOn;
 
-    //--------------------------��PICO�豸------------------------------
+    //--------------------------读PICO设备------------------------------
 
     public static void getAccelaration()
     {
@@ -28,7 +27,7 @@ public static class PICOManager
         }
     }
 
-    //-------------------------дPICO�豸-------------------------
+    //-------------------------写PICO设备-------------------------
     public static void VolumeDown()
     {
         PXR_System.VolumeDown();
@@ -38,11 +37,14 @@ public static class PICOManager
     {
         PXR_System.VolumeUp();
     }
-
-
+public void EnableSeeThrough(bool enable)
+{
+PXR_Boundary.EnableSeeThroughManual(enable)；
+    }
+    
     public static class VibrationController
     {
-        public static void HandVibrate(float intensity, int duration, int hand)     //�򻯷�װ�ֱ��𶯵ĺ���
+        public static void HandVibrate(float intensity, int duration, int hand)     //简化封装手柄震动的函数
         {
             if(hand == 0)
             {
