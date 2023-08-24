@@ -3,7 +3,7 @@ using UnityEngine.UI;
 
 public class ImageManager : MonoBehaviour
 {
-    public static void ChangeAlpha(GameObject gb, float alpha)   //¸Ä±äÍ¼Æ¬Í¸Ã÷¶È
+    public static void ChangeAlpha(GameObject gb, float alpha)   //ä¿®æ”¹å›¾ç‰‡é€æ˜åº¦
     {
         if(alpha < 0) { alpha = 0; }
         if(alpha > 1) { alpha = 1; }
