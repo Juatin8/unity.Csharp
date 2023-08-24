@@ -1,4 +1,3 @@
-- [应用发布上架商城管理](https://developer-cn.pico-interactive.com/console#/organization/app?org_id=7172815140419715104)
 # Camera
 - floor 按照现实中PICO检测的离地高度
 - device 自定义定义高度
