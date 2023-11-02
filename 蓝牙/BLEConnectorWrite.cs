@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-public class MyBLEinGameWrite : MonoBehaviour  
+public class BLEConnectorWrite : MonoBehaviour  
 {
     public string DeviceName = "MyESP32";
     public string ServiceUUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";//"A9E90000-194C-4523-A473-5FDF36AA4D20";
