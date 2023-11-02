@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System;
 using TMPro;
 
-public class TryMyBlueToothHandlernew : MonoBehaviour
+public class MultiBLEConnector : MonoBehaviour
 {
 	//TODO:
 	//用IEnumerator来实现
