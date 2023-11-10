@@ -1,16 +1,13 @@
-﻿using System;
-using System.Text;
 using UnityEngine;
-using UnityEngine.UI;
 using TMPro;
 
-public class BLEConnectorRead : MonoBehaviour  
+public class BLEConnectorRead2 : MonoBehaviour  
 {
     public string DeviceName = "MyESP32";
-    public string ServiceUUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";//"A9E90000-194C-4523-A473-5FDF36AA4D20";
-    public string MyUUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8";//"A9E90001-194C-4523-A473-5FDF36AA4D20";
+    public string ServiceUUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
+    public string MyUUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
 
-    enum States  //不同的状态
+    enum States
     {
         None,
         Scan,
@@ -29,168 +26,58 @@ public class BLEConnectorRead : MonoBehaviour
     private string _deviceAddress;
     public bool _foundUUID = false;
     private bool _rssiOnly = false;
-    private int _rssi = 0;       //RSSI表示接收信号强度
+    private int _rssi = 0;
 
     public TextMeshProUGUI StatusText;
     public byte[] BLEdata;
 
-    void Start()     //初始化
+    void Start()
     {
         StartProcess();
     }
 
-
-    void Update()     //根据状态机状态不同，执行不同的BLE操作，比如扫描设备、连接设备、读取设备信息
+    void Update()
     {
-        if(_timeout > 0f)
+        if (_timeout > 0f)
         {
             _timeout -= Time.deltaTime;
-            if(_timeout <= 0f)
+            if (_timeout <= 0f)
             {
                 _timeout = 0f;
-                switch(_state)
+                switch (_state)
                 {
-                    case States.None:  //1.没有状态
+                    case States.None:
                         break;
 
-                    case States.Scan:   //2.扫描
-                        StatusMessage = "Scanning for " + DeviceName;
-                        // 下面有两个回调函数：①只有地址和名称 ②有地址、名称、rssi和bytes
-                        BluetoothLEHardwareInterface.ScanForPeripheralsWithServices(null, (address, name) =>
-                        {
-                            if(!_rssiOnly)   //如果不是只使用RSSI进行扫描
-                            {
-                                if(name.Contains(DeviceName))  //如果找到了设备
-                                {
-                                    StatusMessage = "Found " + name;
-                                    _deviceAddress = address;        // 设置设备地址
-                                    SetState(States.Connect, 0.1f);  // 进入连接状态
-                                }
-                            }
-
-                        }, (address, name, rssi, bytes) =>
-                        {
-                            if(name.Contains(DeviceName))   //如果找到了设备
-                            {
-                                StatusMessage = "Found " + name;
-                                if(_rssiOnly) { _rssi = rssi; }
-                                else
-                                {
-                                    _deviceAddress = address;        // 设置设备地址
-                                    SetState(States.Connect, 0.1f);  // 进入连接状态
-                                }
-                            }
-
-                        }, _rssiOnly);              // 设置是否只使用RSSI进行扫描
-
-                        if(_rssiOnly)               // 如果只使用RSSI进行扫描，则进入连接状态，0.5s超时
-                            SetState(States.ScanRSSI, 0.1f);
+                    case States.Scan:
+                        ScanState();
                         break;
 
-                    case States.ScanRSSI:  //3.扫描RSSI
+                    case States.ScanRSSI:
                         break;
 
-                    case States.ReadRSSI:   //4.读取RSSI
-                        StatusMessage = $"Call Read RSSI";
-                        BluetoothLEHardwareInterface.ReadRSSI(_deviceAddress, (address, rssi) =>
-                        {
-                            StatusMessage = $"Read RSSI: {rssi}";
-                        });
-
-                        SetState(States.ReadRSSI, 0.1f);
+                    case States.ReadRSSI:
+                        ReadRSSIState();
                         break;
 
-                    case States.Connect:   //5.连接上了
-                        StatusMessage = "Connecting...";
-                        _foundUUID = false;
-
-                        //如果连接上了蓝牙
-                        BluetoothLEHardwareInterface.ConnectToPeripheral(_deviceAddress, null, null, (address, serviceUUID, characteristicUUID) =>
-                        {
-                            StatusMessage = "Connected...";            //更新显示
-                            BluetoothLEHardwareInterface.StopScan();   //停止scan
-                            if(IsEqual(serviceUUID, ServiceUUID))      //如果serviceUUID正确
-                            {
-                                StatusMessage = "Found Service UUID";    //显示找到UUID
-
-                                bool isUuidFound = _foundUUID;
-                                bool isUuidMatched = IsEqual(characteristicUUID, MyUUID);
-                                if(!isUuidFound && isUuidMatched)  //如果还没有找到UUID，但是MyUUID对上了，那么就是找到UUID了
-                                {
-                                    _foundUUID = true;
-                                }
-
-                                if(_foundUUID)    //如果找到了UUID
-                                {
-                                    _connected = true;                   //连接上了
-                                    SetState(States.RequestMTU, 0.5f);     //进入请求MTU状态
-                                }
-                            }
-                        });
+                    case States.Connect:
+                        ConnectState();
                         break;
 
-                    case States.RequestMTU:    //6.请求MTU MTU代表最大传输单元（Maximum Transmission Unit）
-                        StatusMessage = "Requesting MTU";
-                        BluetoothLEHardwareInterface.RequestMtu(_deviceAddress, 185, (address, newMTU) =>
-                        {
-                            StatusMessage = "MTU set to " + newMTU.ToString();  //显示MTU
-                            SetState(States.Subscribe, 0.1f);                   //进入订阅状态
-                        });
+                    case States.RequestMTU:
+                        RequestMTUState();
                         break;
 
-                    case States.Subscribe:     //7.订阅
-                        StatusMessage = "Subscribing to characteristics...";
-                        BluetoothLEHardwareInterface.SubscribeCharacteristicWithDeviceAddress(_deviceAddress, ServiceUUID, MyUUID,
-                        (notifyAddress, notifyCharacteristic) =>
-                        {
-                            StatusMessage = "Waiting for user action (1)...";    //显示：等待用户操作
-                            _state = States.None;                                 //状态机状态设置为None
-
-                            // 读取最初状态
-                            BluetoothLEHardwareInterface.ReadCharacteristic(_deviceAddress, ServiceUUID, MyUUID,
-                            (characteristic, bytes) =>
-                            {
-                                BLEdata = bytes;
-                            });
-
-                            // SetState(States.ReadRSSI, 1f);
-
-                        }, (address, characteristicUUID, bytes) =>
-                        {
-                            //--------------------------------------------------------------- 获取数据的关键代码 -----------------------------------
-                            if(_state != States.None)  //如果不是空状态
-                            {
-                                BLEdata = bytes;
-                            }
-
-                            //----------------------------------------------------------------------------------------------------------------------------
-                        });
+                    case States.Subscribe:
+                        SubscribeState();
                         break;
 
-                    case States.Unsubscribe:  //取消订阅
-                        BluetoothLEHardwareInterface.UnSubscribeCharacteristic(_deviceAddress, ServiceUUID, MyUUID, null);
-                        SetState(States.Disconnect, 4f);
+                    case States.Unsubscribe:
+                        UnsubscribeState();
                         break;
 
-                    case States.Disconnect:  //断开连接
-                        StatusMessage = "Commanded disconnect.";
-                        if(_connected)
-                        {
-                            BluetoothLEHardwareInterface.DisconnectPeripheral(_deviceAddress, (address) =>
-                            {
-                                StatusMessage = "Device disconnected";
-                                BluetoothLEHardwareInterface.DeInitialize(() =>
-                                {
-                                    _connected = false;
-                                    _state = States.None;
-                                });
-                            });
-                        }
-                        else
-                        {
-                            BluetoothLEHardwareInterface.DeInitialize(() =>
-                            { _state = States.None; });
-                        }
+                    case States.Disconnect:
+                        DisconnectState();
                         break;
                 }
             }
@@ -198,35 +85,171 @@ public class BLEConnectorRead : MonoBehaviour
     }
 
 
-//----------------------------------------- 函数一次封装 --------------------------------------
-    private string StatusMessage //获取信息
+    //------- 不同状态下执行的操作----------
+
+    private void ScanState()
     {
-        set
+        StatusMessage = "Scanning for " + DeviceName;
+        BluetoothLEHardwareInterface.ScanForPeripheralsWithServices(null, (address, name) =>
         {
-            BluetoothLEHardwareInterface.Log(value);
-            StatusText.text = value;
+            if (!_rssiOnly)
+            {
+                if (name.Contains(DeviceName))
+                {
+                    StatusMessage = "Found " + name;
+                    _deviceAddress = address;
+                    SetState(States.Connect, 0.1f);
+                }
+            }
+        }, (address, name, rssi, bytes) =>
+        {
+            if (name.Contains(DeviceName))
+            {
+                StatusMessage = "Found " + name;
+                if (_rssiOnly) { _rssi = rssi; }
+                else
+                {
+                    _deviceAddress = address;
+                    SetState(States.Connect, 0.1f);
+                }
+            }
+        }, _rssiOnly);
+
+        if (_rssiOnly)
+            SetState(States.ScanRSSI, 0.1f);
+    }
+
+    private void ReadRSSIState()
+    {
+        StatusMessage = $"Call Read RSSI";
+        BluetoothLEHardwareInterface.ReadRSSI(_deviceAddress, (address, rssi) =>
+        {
+            StatusMessage = $"Read RSSI: {rssi}";
+        });
+
+        SetState(States.ReadRSSI, 0.1f);
+    }
+
+    private void ConnectState()
+    {
+        StatusMessage = "Connecting...";
+        _foundUUID = false;
+
+        BluetoothLEHardwareInterface.ConnectToPeripheral(_deviceAddress, null, null, (address, serviceUUID, characteristicUUID) =>
+        {
+            StatusMessage = "Connected...";
+            BluetoothLEHardwareInterface.StopScan();
+            if (IsEqual(serviceUUID, ServiceUUID))
+            {
+                StatusMessage = "Found Service UUID";
+                bool isUuidFound = _foundUUID;
+                bool isUuidMatched = IsEqual(characteristicUUID, MyUUID);
+                if (!isUuidFound && isUuidMatched)
+                {
+                    _foundUUID = true;
+                }
+
+                if (_foundUUID)
+                {
+                    _connected = true;
+                    SetState(States.RequestMTU, 0.5f);
+                }
+            }
+        });
+    }
+
+    private void RequestMTUState()
+    {
+        StatusMessage = "Requesting MTU";
+        BluetoothLEHardwareInterface.RequestMtu(_deviceAddress, 185, (address, newMTU) =>
+        {
+            StatusMessage = "MTU set to " + newMTU.ToString();
+            SetState(States.Subscribe, 0.1f);
+        });
+    }
+
+    private void SubscribeState()
+    {
+        StatusMessage = "Subscribing to characteristics...";
+        BluetoothLEHardwareInterface.SubscribeCharacteristicWithDeviceAddress(_deviceAddress, ServiceUUID, MyUUID,
+        (notifyAddress, notifyCharacteristic) =>
+        {
+            StatusMessage = "Waiting for user action (1)...";
+            _state = States.None;
+
+            BluetoothLEHardwareInterface.ReadCharacteristic(_deviceAddress, ServiceUUID, MyUUID,
+            (characteristic, bytes) =>
+            {
+                BLEdata = bytes;
+            });
+        }, (address, characteristicUUID, bytes) =>
+        {
+            if (_state != States.None)
+            {
+                BLEdata = bytes;
+            }
+        });
+    }
+
+    private void UnsubscribeState()
+    {
+        BluetoothLEHardwareInterface.UnSubscribeCharacteristic(_deviceAddress, ServiceUUID, MyUUID, null);
+        SetState(States.Disconnect, 4f);
+    }
+
+    private void DisconnectState()
+    {
+        StatusMessage = "Commanded disconnect.";
+
+        if (_connected)
+        {
+            BluetoothLEHardwareInterface.DisconnectPeripheral(_deviceAddress, (address) =>
+            {
+                StatusMessage = "Device disconnected";
+                BluetoothLEHardwareInterface.DeInitialize(() =>
+                {
+                    _connected = false;
+                    _state = States.None;
+                });
+            });
+        }
+        else
+        {
+            BluetoothLEHardwareInterface.DeInitialize(() =>
+            {
+                _state = States.None;
+            });
         }
     }
 
-    void SetState(States newState, float timeout)  //设置状态和超时时间
+    //------------------
+    public void StartProcess()
     {
-        _state = newState;
-        _timeout = timeout;
-    }
-
-   public void StartProcess()     //初始化并设置初始状态
-    {
-        Reset(); //重置一下状态
+        Reset();
         BluetoothLEHardwareInterface.Initialize(true, false, () =>
         {
-            SetState(States.Scan, 0.1f);   //扫描状态
+            SetState(States.Scan, 0.1f);
         }, (error) =>
         {
             StatusMessage = "Error during initialize: " + error;
         });
     }
 
-    string FullUUID(string uuid)
+    private void Reset()
+    {
+        _connected = false;
+        _timeout = 0f;
+        _state = States.None;
+        _deviceAddress = null;
+        _foundUUID = false;
+        _rssi = 0;
+    }
+
+
+
+    //--------------底层计算------------
+
+    private string FullUUID(string uuid)
     {
         string fullUUID = uuid;
         if (fullUUID.Length == 4)
@@ -234,7 +257,7 @@ public class BLEConnectorRead : MonoBehaviour
         return fullUUID;
     }
 
-    bool IsEqual(string uuid1, string uuid2)
+    private bool IsEqual(string uuid1, string uuid2)
     {
         if (uuid1.Length == 4)
             uuid1 = FullUUID(uuid1);
@@ -243,14 +266,18 @@ public class BLEConnectorRead : MonoBehaviour
         return (uuid1.ToUpper().Equals(uuid2.ToUpper()));
     }
 
-//----------------------------------------- 函数二次封装 --------------------------------------
-    void Reset()   //重置状态和变量
+    private void SetState(States newState, float timeout)
     {
-        _connected = false;
-        _timeout = 0f;
-        _state = States.None;
-        _deviceAddress = null;
-        _foundUUID = false;
-        _rssi = 0;
+        _state = newState;
+        _timeout = timeout;
+    }
+
+    private string StatusMessage //获取信息
+    {
+        set
+        {
+            BluetoothLEHardwareInterface.Log(value);
+            StatusText.text = value;
+        }
     }
 }
