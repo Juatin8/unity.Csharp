@@ -2,6 +2,7 @@
 using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class BLEConnectorRead : MonoBehaviour  
 {
@@ -26,18 +27,18 @@ public class BLEConnectorRead : MonoBehaviour
     private float _timeout = 0f;
     private States _state = States.None;
     private string _deviceAddress;
-    private bool _foundUUID = false;
+    public bool _foundUUID = false;
     private bool _rssiOnly = false;
     private int _rssi = 0;       //RSSI表示接收信号强度
 
-    public Text StatusText;
-    public Text ParamText;
-    public float ParamtValue;  //蓝牙传进来的参数值
+    public TextMeshProUGUI StatusText;
+    public byte[] BLEdata;
 
     void Start()     //初始化
     {
         StartProcess();
     }
+
 
     void Update()     //根据状态机状态不同，执行不同的BLE操作，比如扫描设备、连接设备、读取设备信息
     {
@@ -63,7 +64,7 @@ public class BLEConnectorRead : MonoBehaviour
                                 {
                                     StatusMessage = "Found " + name;
                                     _deviceAddress = address;        // 设置设备地址
-                                    SetState(States.Connect, 0.5f);  // 进入连接状态
+                                    SetState(States.Connect, 0.1f);  // 进入连接状态
                                 }
                             }
 
@@ -76,14 +77,14 @@ public class BLEConnectorRead : MonoBehaviour
                                 else
                                 {
                                     _deviceAddress = address;        // 设置设备地址
-                                    SetState(States.Connect, 0.5f);  // 进入连接状态
+                                    SetState(States.Connect, 0.1f);  // 进入连接状态
                                 }
                             }
 
                         }, _rssiOnly);              // 设置是否只使用RSSI进行扫描
 
                         if(_rssiOnly)               // 如果只使用RSSI进行扫描，则进入连接状态，0.5s超时
-                            SetState(States.ScanRSSI, 0.5f);
+                            SetState(States.ScanRSSI, 0.1f);
                         break;
 
                     case States.ScanRSSI:  //3.扫描RSSI
@@ -96,7 +97,7 @@ public class BLEConnectorRead : MonoBehaviour
                             StatusMessage = $"Read RSSI: {rssi}";
                         });
 
-                        SetState(States.ReadRSSI, 2f);
+                        SetState(States.ReadRSSI, 0.1f);
                         break;
 
                     case States.Connect:   //5.连接上了
@@ -107,7 +108,6 @@ public class BLEConnectorRead : MonoBehaviour
                         BluetoothLEHardwareInterface.ConnectToPeripheral(_deviceAddress, null, null, (address, serviceUUID, characteristicUUID) =>
                         {
                             StatusMessage = "Connected...";            //更新显示
-                            StateController.Inst.gamePageUI.gameButton.GetComponent<GameButtonUI>().Connect();
                             BluetoothLEHardwareInterface.StopScan();   //停止scan
                             if(IsEqual(serviceUUID, ServiceUUID))      //如果serviceUUID正确
                             {
@@ -123,7 +123,7 @@ public class BLEConnectorRead : MonoBehaviour
                                 if(_foundUUID)    //如果找到了UUID
                                 {
                                     _connected = true;                   //连接上了
-                                    SetState(States.RequestMTU, 2f);     //进入请求MTU状态
+                                    SetState(States.RequestMTU, 0.5f);     //进入请求MTU状态
                                 }
                             }
                         });
@@ -150,8 +150,7 @@ public class BLEConnectorRead : MonoBehaviour
                             BluetoothLEHardwareInterface.ReadCharacteristic(_deviceAddress, ServiceUUID, MyUUID,
                             (characteristic, bytes) =>
                             {
-                                //ProcessButton(bytes);
-                                // ButtonPositionText.text = Encoding.UTF8.GetString(bytes);
+                                BLEdata = bytes;
                             });
 
                             // SetState(States.ReadRSSI, 1f);
@@ -161,10 +160,7 @@ public class BLEConnectorRead : MonoBehaviour
                             //--------------------------------------------------------------- 获取数据的关键代码 -----------------------------------
                             if(_state != States.None)  //如果不是空状态
                             {
-                                // StatusMessage = Encoding.UTF8.GetString(bytes); //获取数据，并转化格式 !!!!!!!!!!这行是关键
-                                string mystring = Encoding.UTF8.GetString(bytes);
-                                ParamText.text = mystring;
-                                ParamtValue = float.Parse(mystring); //将bytes转化为float
+                                BLEdata = bytes;
                             }
 
                             //----------------------------------------------------------------------------------------------------------------------------
@@ -178,7 +174,6 @@ public class BLEConnectorRead : MonoBehaviour
 
                     case States.Disconnect:  //断开连接
                         StatusMessage = "Commanded disconnect.";
-                        StateController.Inst.gamePageUI.gameButton.GetComponent<GameButtonUI>().Disconnect();
                         if(_connected)
                         {
                             BluetoothLEHardwareInterface.DisconnectPeripheral(_deviceAddress, (address) =>
@@ -219,7 +214,7 @@ public class BLEConnectorRead : MonoBehaviour
         _timeout = timeout;
     }
 
-    void StartProcess()     //初始化并设置初始状态
+   public void StartProcess()     //初始化并设置初始状态
     {
         Reset(); //重置一下状态
         BluetoothLEHardwareInterface.Initialize(true, false, () =>
