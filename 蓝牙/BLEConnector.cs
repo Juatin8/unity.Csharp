@@ -1,7 +1,7 @@
 using UnityEngine;
 using TMPro;
 
-public class BLEConnectorRead2 : MonoBehaviour  
+public class BLEConnector : MonoBehaviour  
 {
     public string DeviceName = "MyESP32";
     public string ServiceUUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
