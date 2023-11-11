@@ -1,11 +1,12 @@
 using UnityEngine;
 using TMPro;
 
-public class BLEConnector : MonoBehaviour  
+public class BLEConnectorRead2 : MonoBehaviour
 {
     public string DeviceName = "MyESP32";
     public string ServiceUUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
     public string MyUUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
+    //public string WriteUUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
 
     enum States
     {
@@ -162,7 +163,7 @@ public class BLEConnector : MonoBehaviour
                 if (_foundUUID)
                 {
                     _connected = true;
-                    SetState(States.RequestMTU, 0.5f);
+                    SetState(States.RequestMTU, 1f);
                 }
             }
         });
@@ -187,7 +188,7 @@ public class BLEConnector : MonoBehaviour
             StatusMessage = "Waiting for user action (1)...";
             _state = States.None; //切换到空状态，蓝牙不会再做状态切换，用户此时可发起指令
             SetState(States.Read, 0.01f);//如果默认要采集数据，不妨直接切换到readState
-       
+
         }, (address, characteristicUUID, bytes) => //带数据的数据传进来了
         {
         });
@@ -226,12 +227,30 @@ public class BLEConnector : MonoBehaviour
 
     private void ReadState()
     {
-        BluetoothLEHardwareInterface.ReadCharacteristic(_deviceAddress, ServiceUUID, MyUUID,
-       (characteristic, bytes) =>
+         BluetoothLEHardwareInterface.ReadCharacteristic(_deviceAddress, ServiceUUID, MyUUID,
+        (characteristic, bytes) =>
        {
            BLEdata = bytes;
        });
     }
+
+    public void unsubscribe()
+    {
+        _state = States.Unsubscribe;
+    }
+
+
+
+    void SendByte(byte value, string uuid)   //用蓝牙发送数据
+    {
+        byte[] data = { value };
+        BluetoothLEHardwareInterface.WriteCharacteristic(_deviceAddress, ServiceUUID, uuid, data, data.Length, true, (characteristicUUID) =>
+        {
+            BluetoothLEHardwareInterface.Log("Write Succeeded");
+        });
+    }
+
+
 
     //------------------
     public void StartProcess()
@@ -255,8 +274,6 @@ public class BLEConnector : MonoBehaviour
         _foundUUID = false;
         _rssi = 0;
     }
-
-
 
     //--------------底层计算------------
 
