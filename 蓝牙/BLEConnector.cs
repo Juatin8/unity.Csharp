@@ -3,11 +3,16 @@ using TMPro;
 
 public class BLEConnectorRead2 : MonoBehaviour
 {
-    public string DeviceName = "MyESP32";
-    public string ServiceUUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
-    public string MyUUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
-    //public string WriteUUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
+    //----------- 参数-------------
+    const string DeviceName = "WT901BLE68";
+    const string ServiceUUID = "0000FFE5-0000-1000-8000-00805F9A34FB";
+    const string ReadUUID = "0000ffe4-0000-1000-8000-00805f9a34fb";
+    const string WriteUUID = "0000ffe9-0000-1000-8000-00805f9a34fb";
 
+    public float[] Q = new float[4];
+    public float temp;
+
+    //-------------------------------
     enum States
     {
         None,
@@ -19,8 +24,6 @@ public class BLEConnectorRead2 : MonoBehaviour
         Subscribe,
         Unsubscribe,
         Disconnect,
-        Read,
-        Write,
     }
 
     private bool _connected = false;
@@ -81,14 +84,6 @@ public class BLEConnectorRead2 : MonoBehaviour
 
                     case States.Disconnect:
                         DisconnectState();
-                        break;
-
-                    case States.Read:
-                        ReadState();
-                        break;
-
-                    case States.Write:
-                        //WriteState();
                         break;
                 }
             }
@@ -154,7 +149,7 @@ public class BLEConnectorRead2 : MonoBehaviour
             {
                 StatusMessage = "Found Service UUID";
                 bool isUuidFound = _foundUUID;
-                bool isUuidMatched = IsEqual(characteristicUUID, MyUUID);
+                bool isUuidMatched = IsEqual(characteristicUUID, ReadUUID);
                 if (!isUuidFound && isUuidMatched)
                 {
                     _foundUUID = true;
@@ -182,21 +177,21 @@ public class BLEConnectorRead2 : MonoBehaviour
     private void SubscribeState()
     {
         StatusMessage = "Subscribing to characteristics...";
-        BluetoothLEHardwareInterface.SubscribeCharacteristicWithDeviceAddress(_deviceAddress, ServiceUUID, MyUUID,
+        BluetoothLEHardwareInterface.SubscribeCharacteristicWithDeviceAddress(_deviceAddress, ServiceUUID, ReadUUID,
         (notifyAddress, notifyCharacteristic) => //处理订阅结果
         {
-            StatusMessage = "Waiting for user action (1)...";
+            StatusMessage = "Waiting for user action...";
             _state = States.None; //切换到空状态，蓝牙不会再做状态切换，用户此时可发起指令
-            SetState(States.Read, 0.01f);//如果默认要采集数据，不妨直接切换到readState
-
         }, (address, characteristicUUID, bytes) => //带数据的数据传进来了
         {
+            BLEdata = bytes;
+            WitBLESetting.ProcessBatteryData(BLEdata,ref temp ); //需要用户操作的地方
         });
     }
 
     private void UnsubscribeState()
     {
-        BluetoothLEHardwareInterface.UnSubscribeCharacteristic(_deviceAddress, ServiceUUID, MyUUID, null);
+        BluetoothLEHardwareInterface.UnSubscribeCharacteristic(_deviceAddress, ServiceUUID, ReadUUID, null);
         SetState(States.Disconnect, 4f);
     }
 
@@ -224,32 +219,25 @@ public class BLEConnectorRead2 : MonoBehaviour
             });
         }
     }
-
-    private void ReadState()
+    /*
+    public void ReadOnce() //只读一次
     {
-         BluetoothLEHardwareInterface.ReadCharacteristic(_deviceAddress, ServiceUUID, MyUUID,
+         BluetoothLEHardwareInterface.ReadCharacteristic(_deviceAddress, ServiceUUID, ReadUUID,
         (characteristic, bytes) =>
        {
            BLEdata = bytes;
+           Debug.Log("bledata=" + BLEdata);
        });
-    }
-
-    public void unsubscribe()
+    } */
+ 
+    public void Write()
     {
-        _state = States.Unsubscribe;
-    }
-
-
-
-    void SendByte(byte value, string uuid)   //用蓝牙发送数据
-    {
-        byte[] data = { value };
-        BluetoothLEHardwareInterface.WriteCharacteristic(_deviceAddress, ServiceUUID, uuid, data, data.Length, true, (characteristicUUID) =>
+        byte[] data = WitBLESetting.BatteryData;
+        BluetoothLEHardwareInterface.WriteCharacteristic(_deviceAddress, ServiceUUID, WriteUUID, data, data.Length, true, (characteristicUUID) =>
         {
             BluetoothLEHardwareInterface.Log("Write Succeeded");
         });
     }
-
 
 
     //------------------
