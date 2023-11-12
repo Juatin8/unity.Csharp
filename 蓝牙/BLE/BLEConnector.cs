@@ -4,13 +4,13 @@ using UnityEngine.Events;
 
 public class BLEConnector : MonoBehaviour //这个脚本用来连接蓝牙，只需要改参数就行
 {
-    public UnityEvent OnGetData;
+    [HideInInspector] public UnityEvent OnGetData;
 
     //----------- 参数-------------
-    public const string DeviceName = "WT901BLE68";
-    public const string ServiceUUID = "0000FFE5-0000-1000-8000-00805F9A34FB";
-    public const string ReadUUID = "0000ffe4-0000-1000-8000-00805f9a34fb";
-    public const string WriteUUID = "0000ffe9-0000-1000-8000-00805f9a34fb";
+    public string DeviceName = "WT901BLE68";
+    public string ServiceUUID = "0000FFE5-0000-1000-8000-00805F9A34FB";
+    public string ReadUUID = "0000ffe4-0000-1000-8000-00805f9a34fb";
+    public string WriteUUID = "0000ffe9-0000-1000-8000-00805f9a34fb";
 
     //-------------------------------
     enum States
@@ -30,8 +30,8 @@ public class BLEConnector : MonoBehaviour //这个脚本用来连接蓝牙，只
     private float _timeout = 0f;
     private States _state = States.None;
     public string _deviceAddress;
-    public bool _foundUUID = false;
-    public bool subscribed = false;
+    [SerializeField] private bool _foundUUID = false;
+    [SerializeField] private bool subscribed = false;
     private bool _rssiOnly = false;
     private int _rssi = 0;
 
@@ -105,6 +105,7 @@ public class BLEConnector : MonoBehaviour //这个脚本用来连接蓝牙，只
                 {
                     StatusMessage = "Found " + name;
                     _deviceAddress = address;
+                    BluetoothLEHardwareInterface.StopScan(); //
                     SetState(States.Connect, 0.1f);
                 }
             }
@@ -117,6 +118,7 @@ public class BLEConnector : MonoBehaviour //这个脚本用来连接蓝牙，只
                 else
                 {
                     _deviceAddress = address;
+                    BluetoothLEHardwareInterface.StopScan();
                     SetState(States.Connect, 0.1f);
                 }
             }
@@ -145,7 +147,6 @@ public class BLEConnector : MonoBehaviour //这个脚本用来连接蓝牙，只
         BluetoothLEHardwareInterface.ConnectToPeripheral(_deviceAddress, null, null, (address, serviceUUID, characteristicUUID) =>
         {
             StatusMessage = "Connected...";
-            BluetoothLEHardwareInterface.StopScan();
             if (IsEqual(serviceUUID, ServiceUUID))
             {
                 StatusMessage = "Found Service UUID";
@@ -159,7 +160,7 @@ public class BLEConnector : MonoBehaviour //这个脚本用来连接蓝牙，只
                 if (_foundUUID)
                 {
                     _connected = true;
-                    SetState(States.RequestMTU, 1f);
+                    SetState(States.RequestMTU, 0.2f);
                 }
             }
         });
@@ -245,6 +246,7 @@ public class BLEConnector : MonoBehaviour //这个脚本用来连接蓝牙，只
         _deviceAddress = null;
         _foundUUID = false;
         _rssi = 0;
+        subscribed = false;
     }
 
     //--------------底层计算------------
