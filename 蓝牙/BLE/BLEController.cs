@@ -20,8 +20,8 @@ public class BLEController : MonoBehaviour //这个脚本专门用来处理蓝�
     {
         data = bleconnector.BLEdata;
         address = bleconnector._deviceAddress;
-        serviceuuid = BLEConnector.ServiceUUID;
-        writeuuid = BLEConnector.WriteUUID;
+        serviceuuid = bleconnector.ServiceUUID;
+        writeuuid = bleconnector.WriteUUID;
         WitBLESetting.ProcessBatteryData(data, ref temp); //需要用户操作的地方
     }
 
